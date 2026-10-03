@@ -2,7 +2,7 @@ name: astrbot_plugin_group_bible
 display_name: 群圣经
 desc: 引用群消息入典，以 mutsumi_dark 风格生成卡片，并支持随机爆典与戳一戳触发。
 help: 使用 /群圣经帮助 或 /gbible help 查看帮助。
-version: v1.0.0
+version: v1.1.0
 author: Tyrkb
 repo: https://github.com/monohuan/astrbot_plugin_group_bible
 astrbot_version: ">=4.28.0,<5"

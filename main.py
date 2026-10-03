@@ -20,6 +20,7 @@ from astrbot.core.star.filter.command import GreedyStr
 
 from .database import BibleEntry, BibleStore, DuplicateBibleError
 from .renderer import BibleRenderer
+from .web import GroupBibleWebController
 
 
 PLUGIN_NAME = "astrbot_plugin_group_bible"
@@ -33,7 +34,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.0.0")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.1.0")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
@@ -49,6 +50,16 @@ class GroupBiblePlugin(Star):
         )
         self._poke_last_at: dict[str, float] = {}
         self._asset_lock = asyncio.Lock()
+        self.web = GroupBibleWebController(
+            self.context,
+            self.config,
+            self.store,
+            self._on_web_config_changed,
+        )
+        self.web.register_routes()
+
+    def _on_web_config_changed(self) -> None:
+        self.renderer.show_id = bool(self.config.get("show_bible_id", True))
 
     def _cfg_int(self, key: str, default: int, minimum: int, maximum: int) -> int:
         try:
@@ -489,4 +500,3 @@ class GroupBiblePlugin(Star):
 
     async def terminate(self):
         self._poke_last_at.clear()
-

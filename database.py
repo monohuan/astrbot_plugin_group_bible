@@ -201,3 +201,68 @@ class BibleStore:
             await db.commit()
         return entry
 
+    async def dashboard_groups(self) -> list[dict[str, Any]]:
+        """Return per-group counters for the authenticated plugin dashboard."""
+        await self.initialize()
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            rows = await (
+                await db.execute(
+                    """
+                    SELECT group_id, COUNT(*) AS amount, MAX(created_at) AS latest_at
+                    FROM bible_entries
+                    GROUP BY group_id
+                    ORDER BY latest_at DESC, group_id
+                    """
+                )
+            ).fetchall()
+        return [
+            {
+                "group_id": str(row["group_id"]),
+                "amount": int(row["amount"]),
+                "latest_at": int(row["latest_at"] or 0),
+            }
+            for row in rows
+        ]
+
+    async def dashboard_list(
+        self,
+        *,
+        group_id: str = "",
+        query: str = "",
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[BibleEntry], int]:
+        """Search entries across groups for the authenticated plugin dashboard."""
+        await self.initialize()
+        clauses: list[str] = []
+        params: list[Any] = []
+        if group_id:
+            clauses.append("group_id = ?")
+            params.append(group_id)
+        if query:
+            escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            like = f"%{escaped}%"
+            clauses.append(
+                "(plain_text LIKE ? ESCAPE '\\' OR author_name LIKE ? ESCAPE '\\' "
+                "OR author_id LIKE ? ESCAPE '\\' OR collector_name LIKE ? ESCAPE '\\' "
+                "OR CAST(id AS TEXT) = ?)"
+            )
+            params.extend([like, like, like, like, query.removeprefix("#")])
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
+        offset = max(0, page - 1) * page_size
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            count_row = await (
+                await db.execute(
+                    f"SELECT COUNT(*) AS amount FROM bible_entries{where}", params
+                )
+            ).fetchone()
+            rows = await (
+                await db.execute(
+                    f"SELECT * FROM bible_entries{where} ORDER BY id DESC LIMIT ? OFFSET ?",
+                    [*params, page_size, offset],
+                )
+            ).fetchall()
+        total = int(count_row["amount"] if count_row else 0)
+        return [self._row_to_entry(row) for row in rows if row is not None], total

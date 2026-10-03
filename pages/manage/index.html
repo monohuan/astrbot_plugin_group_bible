@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>群圣经管理</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">GROUP BIBLE ARCHIVE</p>
+        <h1>群圣经管理</h1>
+        <p class="subtitle">整理群聊里的高光时刻，管理收录内容与插件行为。</p>
+      </div>
+      <button id="settingsButton" class="button secondary">插件设置</button>
+    </header>
+
+    <section class="metrics" aria-label="统计信息">
+      <article><span>全部条目</span><strong id="totalMetric">—</strong></article>
+      <article><span>收录群聊</span><strong id="groupMetric">—</strong></article>
+      <article><span>当前筛选</span><strong id="filteredMetric">—</strong></article>
+    </section>
+
+    <section class="workspace">
+      <aside class="groups-panel">
+        <div class="section-heading">
+          <div><span class="kicker">GROUPS</span><h2>群聊</h2></div>
+          <button id="refreshButton" class="icon-button" title="刷新">↻</button>
+        </div>
+        <nav id="groupList" class="group-list"></nav>
+      </aside>
+
+      <section class="entries-panel">
+        <div class="toolbar">
+          <div>
+            <span class="kicker">ENTRIES</span>
+            <h2 id="entriesTitle">全部圣经</h2>
+          </div>
+          <label class="search">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="搜索正文、作者、QQ 或 #编号">
+          </label>
+        </div>
+        <div id="status" class="status">正在载入……</div>
+        <div id="entryList" class="entry-list"></div>
+        <footer class="pager">
+          <button id="previousButton" class="button secondary">上一页</button>
+          <span id="pageLabel">1 / 1</span>
+          <button id="nextButton" class="button secondary">下一页</button>
+        </footer>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="settingsDialog">
+    <form id="settingsForm" method="dialog">
+      <div class="dialog-head">
+        <div><span class="kicker">SETTINGS</span><h2>插件设置</h2></div>
+        <button id="closeSettingsButton" class="icon-button" type="button">×</button>
+      </div>
+      <div class="settings-grid">
+        <label><span>入典权限</span><select name="add_permission_level"><option value="0">0 · 仅 Bot 管理员</option><option value="1">1 · 群管理及 Bot 管理员</option><option value="2">2 · 所有群成员</option></select></label>
+        <label class="toggle"><span><b>戳一戳爆典</b><small>无圣经时仍交给 LLM Poke</small></span><input name="enable_poke_random" type="checkbox"></label>
+        <label><span>戳一戳冷却（秒）</span><input name="poke_cooldown_seconds" type="number" min="0" max="3600"></label>
+        <label><span>列表每页条数</span><input name="list_page_size" type="number" min="5" max="20"></label>
+        <label><span>最大文字长度</span><input name="max_text_length" type="number" min="1" max="20000"></label>
+        <label><span>最大图片数</span><input name="max_images" type="number" min="0" max="20"></label>
+        <label class="toggle"><span><b>卡片显示编号</b><small>在 GROUP BIBLE 标题后显示 #ID</small></span><input name="show_bible_id" type="checkbox"></label>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancelSettingsButton" type="button" class="button secondary">取消</button>
+        <button type="submit" class="button primary">保存设置</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
+
