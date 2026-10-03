@@ -1,0 +1,45 @@
+{
+  "add_permission_level": {
+    "description": "入典权限等级",
+    "type": "int",
+    "options": [0, 1, 2],
+    "default": 1,
+    "hint": "0=仅 AstrBot 管理员；1=AstrBot 管理员、群主和群管理员；2=所有群成员。"
+  },
+  "enable_poke_random": {
+    "description": "启用戳一戳爆典",
+    "type": "bool",
+    "default": true,
+    "hint": "本群有圣经时，戳机器人随机爆典并阻止默认对话；没有圣经时继续触发正常对话。"
+  },
+  "poke_cooldown_seconds": {
+    "description": "戳一戳冷却时间（秒）",
+    "type": "int",
+    "default": 10,
+    "hint": "冷却期内不重复爆典，也不会触发默认对话。"
+  },
+  "list_page_size": {
+    "description": "列表每页条数",
+    "type": "int",
+    "default": 10,
+    "hint": "建议设置为 5 至 20。"
+  },
+  "max_text_length": {
+    "description": "单条圣经最大文字长度",
+    "type": "int",
+    "default": 3000,
+    "hint": "超过限制的引用消息不能入典。"
+  },
+  "max_images": {
+    "description": "单条圣经最大图片数",
+    "type": "int",
+    "default": 9,
+    "hint": "超出的图片不会保存。"
+  },
+  "show_bible_id": {
+    "description": "卡片显示圣经编号",
+    "type": "bool",
+    "default": true
+  }
+}
+

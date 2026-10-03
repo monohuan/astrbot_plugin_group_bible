@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=580">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{width:580px;background:#0a0a0c;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#ededee}.card{width:580px;background:#121214;position:relative;overflow:hidden}.card:before{content:"";display:block;height:3px;background:#7CB342}.header{padding:20px 22px 15px}.title{font-size:20px;font-weight:700}.meta{margin-top:4px;color:#6a6a6e;font-size:11px;letter-spacing:.5px}.divider{height:1px;background:#2a2a2e;margin:0 22px}.list{padding:7px 22px 16px}.row{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:13px 0;border-bottom:1px solid #242428}.row:last-child{border:0}.id{color:#7CB342;font-size:14px;font-weight:700}.author-line{display:flex;align-items:baseline;gap:9px}.author{font-size:14px;font-weight:650;color:#ededee}.time{font-size:10px;color:#505054}.summary{font-size:13px;line-height:1.55;color:#a8a8ac;margin-top:4px;word-break:break-word}.footer{padding:0 22px 18px;color:#5a5a5e;font-size:11px;text-align:right}
+</style></head>
+<body><main class="card"><header class="header"><div class="title">群圣经列表</div><div class="meta">GROUP BIBLE ARCHIVE · TOTAL {{ total }}</div></header><div class="divider"></div><section class="list">{% for entry in entries %}<article class="row"><div class="id">#{{ entry.id }}</div><div><div class="author-line"><span class="author">{{ entry.author }}</span><span class="time">{{ entry.time }}</span></div><div class="summary">{{ entry.summary }}</div></div></article>{% endfor %}</section><footer class="footer">{{ page }} / {{ total_pages }}</footer></main></body></html>
+

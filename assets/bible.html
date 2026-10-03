@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=580">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{width:580px;background:#0a0a0c;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#ededee}.card{width:580px;background:#121214;position:relative;overflow:hidden}.card:before{content:"";display:block;height:3px;background:#7CB342}.header{display:flex;align-items:center;padding:20px 22px 16px}.avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #2a2a2e;background:#1e1e22;margin-right:14px}.identity{min-width:0;flex:1}.name-row{display:flex;align-items:baseline;gap:10px;min-width:0}.name{font-size:17px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time{font-size:11px;color:#5a5a5e;letter-spacing:.4px;font-variant-numeric:tabular-nums;white-space:nowrap}.label{font-size:10px;color:#7CB342;font-weight:700;letter-spacing:1.3px;margin-top:3px}.divider{height:1px;background:#2a2a2e;margin:0 22px}.content{padding:18px 22px 22px}.text{font-size:18px;line-height:1.75;color:#ededee;white-space:pre-wrap;word-break:break-word}.images{display:grid;gap:5px;margin-top:14px;overflow:hidden}.images img{display:block;width:100%;height:100%;object-fit:cover;background:#1a1a1e;border:1px solid #2a2a2e}.grid-1{grid-template-columns:1fr}.grid-1 img{height:auto;max-height:720px;object-fit:contain;border:0}.grid-2,.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3,.grid-5,.grid-6,.grid-7,.grid-8,.grid-9{grid-template-columns:repeat(3,1fr)}.grid-2 img,.grid-3 img,.grid-4 img,.grid-5 img,.grid-6 img,.grid-7 img,.grid-8 img,.grid-9 img{aspect-ratio:1/1}.footer{padding:0 22px 16px;color:#4e4e52;font-size:10px;letter-spacing:.3px}
+</style>
+</head>
+<body><main class="card">
+<header class="header"><img class="avatar" src="{{ avatar }}"><div class="identity"><div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span></div><div class="label">GROUP BIBLE{% if entry_id %} · #{{ entry_id }}{% endif %}</div></div></header>
+<div class="divider"></div>
+<section class="content">{% if text %}<div class="text">{{ text }}</div>{% endif %}{% if images %}<div class="images grid-{{ image_count }}">{% for image in images %}<img src="{{ image }}">{% endfor %}</div>{% endif %}</section>
+<footer class="footer">COLLECTED BY {{ collector_name }}</footer>
+</main></body></html>
+
