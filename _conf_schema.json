@@ -18,6 +18,18 @@
     "default": 10,
     "hint": "冷却期内不重复爆典，也不会触发默认对话。"
   },
+  "random_pool_copies": {
+    "description": "随机池套数",
+    "type": "int",
+    "default": 1,
+    "hint": "每轮随机池中每条典各放入几份，可设置 1 至 100。修改后会在下次爆典时重建随机池。"
+  },
+  "random_pool_reset_minutes": {
+    "description": "随机池定时重置（分钟）",
+    "type": "int",
+    "default": 0,
+    "hint": "从本轮随机池建立时开始计时，到期后在下次爆典时重建；设为 0 表示不按时间重置。"
+  },
   "list_page_size": {
     "description": "列表每页条数",
     "type": "int",
@@ -42,4 +54,3 @@
     "default": true
   }
 }
-

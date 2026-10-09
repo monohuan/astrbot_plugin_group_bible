@@ -41,6 +41,8 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
             add_permission_level=1,
             enable_poke_random=True,
             poke_cooldown_seconds=10,
+            random_pool_copies=1,
+            random_pool_reset_minutes=0,
             list_page_size=10,
             max_text_length=3000,
             max_images=9,
@@ -90,12 +92,19 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
     async def test_update_config_and_delete(self):
         response = await self.client.post(
             "/config",
-            json={"add_permission_level": 2, "enable_poke_random": False},
+            json={
+                "add_permission_level": 2,
+                "enable_poke_random": False,
+                "random_pool_copies": 3,
+                "random_pool_reset_minutes": 1440,
+            },
         )
         payload = await response.get_json()
         self.assertTrue(payload["ok"])
         self.assertEqual(self.config["add_permission_level"], 2)
         self.assertFalse(self.config["enable_poke_random"])
+        self.assertEqual(self.config["random_pool_copies"], 3)
+        self.assertEqual(self.config["random_pool_reset_minutes"], 1440)
         self.assertEqual(self.config.saved, 1)
         self.assertEqual(self.changed, 1)
 
@@ -110,6 +119,12 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
         response = await self.client.post("/config", json={"unknown": True})
         self.assertEqual(response.status_code, 400)
         response = await self.client.post("/config", json={"add_permission_level": 9})
+        self.assertEqual(response.status_code, 400)
+        response = await self.client.post("/config", json={"random_pool_copies": 0})
+        self.assertEqual(response.status_code, 400)
+        response = await self.client.post(
+            "/config", json={"random_pool_reset_minutes": -1}
+        )
         self.assertEqual(response.status_code, 400)
 
 

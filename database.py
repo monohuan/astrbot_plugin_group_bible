@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import random
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -81,6 +82,27 @@ class BibleStore:
                     )
                     """
                 )
+                columns = {
+                    str(row[1])
+                    for row in await (
+                        await db.execute("PRAGMA table_info(bible_draw_state)")
+                    ).fetchall()
+                }
+                if "pool_copies" not in columns:
+                    await db.execute(
+                        "ALTER TABLE bible_draw_state "
+                        "ADD COLUMN pool_copies INTEGER NOT NULL DEFAULT 1"
+                    )
+                if "cycle_started_at" not in columns:
+                    await db.execute(
+                        "ALTER TABLE bible_draw_state "
+                        "ADD COLUMN cycle_started_at INTEGER NOT NULL DEFAULT 0"
+                    )
+                if "reset_seconds" not in columns:
+                    await db.execute(
+                        "ALTER TABLE bible_draw_state "
+                        "ADD COLUMN reset_seconds INTEGER NOT NULL DEFAULT 0"
+                    )
                 await db.commit()
             self._initialized = True
 
@@ -152,13 +174,23 @@ class BibleStore:
             ).fetchone()
         return self._row_to_entry(row)
 
-    async def random(self, group_id: str) -> BibleEntry | None:
+    async def random(
+        self,
+        group_id: str,
+        *,
+        pool_copies: int = 1,
+        reset_seconds: int = 0,
+    ) -> BibleEntry | None:
         """Draw from a persistent per-group shuffle bag.
 
-        Every live entry is returned once before a new shuffled cycle starts.
+        The bag contains ``pool_copies`` copies of every live entry. A new shuffled
+        cycle starts after the bag is empty or its optional lifetime expires.
         The state lives in SQLite so reloads and process restarts do not reset it.
         """
         await self.initialize()
+        pool_copies = max(1, min(100, int(pool_copies)))
+        reset_seconds = max(0, int(reset_seconds))
+        now = int(time.time())
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             await db.execute("PRAGMA busy_timeout=5000")
@@ -186,6 +218,10 @@ class BibleStore:
             remaining_ids: list[int] = []
             cycle = 1
             last_entry_id: int | None = None
+            stored_copies = pool_copies
+            stored_reset_seconds = reset_seconds
+            cycle_started_at = now
+            reset_pool = False
             if state is not None:
                 try:
                     known_ids = [int(value) for value in json.loads(state["known_ids_json"])]
@@ -193,6 +229,9 @@ class BibleStore:
                         int(value) for value in json.loads(state["remaining_ids_json"])
                     ]
                     cycle = max(1, int(state["cycle"]))
+                    stored_copies = max(1, int(state["pool_copies"]))
+                    stored_reset_seconds = max(0, int(state["reset_seconds"]))
+                    cycle_started_at = int(state["cycle_started_at"]) or now
                     if state["last_entry_id"] is not None:
                         last_entry_id = int(state["last_entry_id"])
                 except (TypeError, ValueError, json.JSONDecodeError):
@@ -200,55 +239,87 @@ class BibleStore:
                     known_ids = []
                     remaining_ids = []
                     cycle = 1
+                    stored_copies = pool_copies
+                    stored_reset_seconds = reset_seconds
+                    cycle_started_at = now
+                    reset_pool = True
+
+                if stored_copies != pool_copies:
+                    reset_pool = True
+                if reset_seconds > 0 and stored_reset_seconds != reset_seconds:
+                    reset_pool = True
+                if reset_seconds > 0 and now - cycle_started_at >= reset_seconds:
+                    reset_pool = True
+
+            if reset_pool:
+                known_ids = []
+                remaining_ids = []
+                cycle += 1
+                cycle_started_at = now
 
             current_set = set(current_ids)
             known_set = set(known_ids) & current_set
-            # Preserve order while discarding deleted and duplicated IDs.
-            seen: set[int] = set()
+            # Preserve order while discarding deleted IDs and excess copies.
+            occurrences: dict[int, int] = {}
             valid_remaining_ids: list[int] = []
             for entry_id in remaining_ids:
-                if entry_id in known_set and entry_id not in seen:
-                    seen.add(entry_id)
+                amount = occurrences.get(entry_id, 0)
+                if entry_id in known_set and amount < pool_copies:
+                    occurrences[entry_id] = amount + 1
                     valid_remaining_ids.append(entry_id)
             remaining_ids = valid_remaining_ids
 
             added_ids = [entry_id for entry_id in current_ids if entry_id not in known_set]
             if added_ids:
                 # New entries join the current cycle, so they cannot be starved by repeats.
-                remaining_ids.extend(added_ids)
+                remaining_ids.extend(
+                    entry_id for entry_id in added_ids for _ in range(pool_copies)
+                )
                 random.shuffle(remaining_ids)
                 known_set.update(added_ids)
 
             if not remaining_ids:
-                if state is not None:
+                if state is not None and not reset_pool:
                     cycle += 1
-                remaining_ids = current_ids.copy()
+                remaining_ids = [
+                    entry_id for entry_id in current_ids for _ in range(pool_copies)
+                ]
                 random.shuffle(remaining_ids)
                 # Avoid the same entry on both sides of a cycle boundary when possible.
-                if (
-                    len(remaining_ids) > 1
-                    and last_entry_id is not None
-                    and remaining_ids[-1] == last_entry_id
-                ):
-                    remaining_ids[0], remaining_ids[-1] = (
-                        remaining_ids[-1],
-                        remaining_ids[0],
+                if last_entry_id is not None and remaining_ids[-1] == last_entry_id:
+                    replacement = next(
+                        (
+                            index
+                            for index, entry_id in enumerate(remaining_ids[:-1])
+                            if entry_id != last_entry_id
+                        ),
+                        None,
                     )
+                    if replacement is not None:
+                        remaining_ids[replacement], remaining_ids[-1] = (
+                            remaining_ids[-1],
+                            remaining_ids[replacement],
+                        )
                 known_set = current_set.copy()
+                cycle_started_at = now
 
             selected_id = remaining_ids.pop()
             await db.execute(
                 """
                 INSERT INTO bible_draw_state (
                     group_id, known_ids_json, remaining_ids_json,
-                    cycle, last_entry_id, updated_at
-                ) VALUES (?, ?, ?, ?, ?, CAST(strftime('%s', 'now') AS INTEGER))
+                    cycle, last_entry_id, updated_at, pool_copies,
+                    cycle_started_at, reset_seconds
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(group_id) DO UPDATE SET
                     known_ids_json = excluded.known_ids_json,
                     remaining_ids_json = excluded.remaining_ids_json,
                     cycle = excluded.cycle,
                     last_entry_id = excluded.last_entry_id,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    pool_copies = excluded.pool_copies,
+                    cycle_started_at = excluded.cycle_started_at,
+                    reset_seconds = excluded.reset_seconds
                 """,
                 (
                     group_id,
@@ -256,6 +327,10 @@ class BibleStore:
                     json.dumps(remaining_ids),
                     cycle,
                     selected_id,
+                    now,
+                    pool_copies,
+                    cycle_started_at,
+                    reset_seconds,
                 ),
             )
             row = await (

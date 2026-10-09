@@ -21,6 +21,8 @@ EDITABLE_CONFIG = {
     "add_permission_level": (int, 0, 2),
     "enable_poke_random": (bool, None, None),
     "poke_cooldown_seconds": (int, 0, 3600),
+    "random_pool_copies": (int, 1, 100),
+    "random_pool_reset_minutes": (int, 0, 525600),
     "list_page_size": (int, 5, 20),
     "max_text_length": (int, 1, 20000),
     "max_images": (int, 0, 20),
@@ -199,4 +201,3 @@ class GroupBibleWebController:
         return self._response(
             {"ok": True, "message": "配置已保存", "data": self._config_payload()}
         )
-

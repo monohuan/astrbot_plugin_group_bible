@@ -13,7 +13,7 @@ class FakeStore:
     def __init__(self, entry):
         self.entry = entry
 
-    async def random(self, group_id):
+    async def random(self, group_id, **kwargs):
         return self.entry
 
 
@@ -46,7 +46,12 @@ class FakeEvent:
 
 def make_plugin(entry):
     plugin = object.__new__(GroupBiblePlugin)
-    plugin.config = {"enable_poke_random": True, "poke_cooldown_seconds": 0}
+    plugin.config = {
+        "enable_poke_random": True,
+        "poke_cooldown_seconds": 0,
+        "random_pool_copies": 3,
+        "random_pool_reset_minutes": 30,
+    }
     plugin.store = FakeStore(entry)
     plugin._poke_last_at = {}
     plugin.sent = []
@@ -93,4 +98,3 @@ class PokeCompatibilityTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

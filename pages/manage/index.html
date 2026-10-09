@@ -64,6 +64,8 @@
         <label><span>入典权限</span><select name="add_permission_level"><option value="0">0 · 仅 Bot 管理员</option><option value="1">1 · 群管理及 Bot 管理员</option><option value="2">2 · 所有群成员</option></select></label>
         <label class="toggle"><span><b>戳一戳爆典</b><small>无圣经时仍交给 LLM Poke</small></span><input name="enable_poke_random" type="checkbox"></label>
         <label><span>戳一戳冷却（秒）</span><input name="poke_cooldown_seconds" type="number" min="0" max="3600"></label>
+        <label><span>随机池套数</span><input name="random_pool_copies" type="number" min="1" max="100"><small>每条典在一轮池中出现的份数</small></label>
+        <label><span>随机池定时重置（分钟）</span><input name="random_pool_reset_minutes" type="number" min="0" max="525600"><small>0 表示不按时间重置</small></label>
         <label><span>列表每页条数</span><input name="list_page_size" type="number" min="5" max="20"></label>
         <label><span>最大文字长度</span><input name="max_text_length" type="number" min="1" max="20000"></label>
         <label><span>最大图片数</span><input name="max_images" type="number" min="0" max="20"></label>
@@ -80,4 +82,3 @@
   <script type="module" src="./app.js"></script>
 </body>
 </html>
-

@@ -34,7 +34,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.2.0")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.3.0")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
@@ -67,6 +67,17 @@ class GroupBiblePlugin(Star):
         except (TypeError, ValueError):
             value = default
         return max(minimum, min(maximum, value))
+
+    async def _draw(self, group_id: str) -> BibleEntry | None:
+        copies = self._cfg_int("random_pool_copies", 1, 1, 100)
+        reset_minutes = self._cfg_int(
+            "random_pool_reset_minutes", 0, 0, 525600
+        )
+        return await self.store.random(
+            group_id,
+            pool_copies=copies,
+            reset_seconds=reset_minutes * 60,
+        )
 
     @staticmethod
     def _entry_id(raw: str) -> int | None:
@@ -332,7 +343,7 @@ class GroupBiblePlugin(Star):
         if not group_id:
             await self._send_text(event, "群圣经只能在群聊中使用。")
             return
-        entry = await self.store.random(group_id)
+        entry = await self._draw(group_id)
         if entry is None:
             if empty_reply:
                 await self._send_text(event, "本群还没有圣经。引用一条消息并使用 /入典 吧。")
@@ -484,7 +495,7 @@ class GroupBiblePlugin(Star):
             return
 
         group_id = str(event.get_group_id() or "")
-        entry = await self.store.random(group_id)
+        entry = await self._draw(group_id)
         if entry is None:
             # 这是刻意保留的例外：无圣经时不接管 Poke，继续 AstrBot 默认对话。
             return
