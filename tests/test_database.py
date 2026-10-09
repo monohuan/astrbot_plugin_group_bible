@@ -60,6 +60,65 @@ class BibleStoreTests(unittest.TestCase):
         with self.assertRaises(DuplicateBibleError):
             run(self.store.add(payload()))
 
+    def test_random_draws_every_entry_once_before_repeating(self):
+        entries = [
+            run(self.store.add(payload(message=str(200 + index)))) for index in range(6)
+        ]
+
+        first_cycle = [run(self.store.random("100")).id for _ in entries]
+        self.assertEqual(set(first_cycle), {entry.id for entry in entries})
+        self.assertEqual(len(first_cycle), len(set(first_cycle)))
+
+        next_draw = run(self.store.random("100")).id
+        self.assertIn(next_draw, {entry.id for entry in entries})
+        self.assertNotEqual(next_draw, first_cycle[-1])
+
+    def test_random_draw_state_survives_store_recreation(self):
+        db_path = Path(self.tmp.name) / "bible.db"
+        entries = [
+            run(self.store.add(payload(message=str(300 + index)))) for index in range(4)
+        ]
+        first_id = run(self.store.random("100")).id
+
+        reopened = BibleStore(db_path)
+        rest = [run(reopened.random("100")).id for _ in range(3)]
+        self.assertNotIn(first_id, rest)
+        self.assertEqual({first_id, *rest}, {entry.id for entry in entries})
+
+    def test_new_and_deleted_entries_update_current_draw_cycle(self):
+        original = [
+            run(self.store.add(payload(message=str(400 + index)))) for index in range(4)
+        ]
+        already_drawn = run(self.store.random("100")).id
+        new_entry = run(self.store.add(payload(message="499")))
+        to_delete = next(entry for entry in original if entry.id != already_drawn)
+        run(self.store.delete("100", to_delete.id))
+
+        remaining_live_ids = {
+            entry.id
+            for entry in [*original, new_entry]
+            if entry.id not in {already_drawn, to_delete.id}
+        }
+        draws = [run(self.store.random("100")).id for _ in remaining_live_ids]
+        self.assertEqual(set(draws), remaining_live_ids)
+        self.assertNotIn(to_delete.id, draws)
+
+    def test_concurrent_random_draws_do_not_duplicate(self):
+        entries = [
+            run(self.store.add(payload(message=str(500 + index)))) for index in range(8)
+        ]
+
+        async def draw_together():
+            return await asyncio.gather(
+                *(self.store.random("100") for _ in range(len(entries)))
+            )
+
+        draws = run(draw_together())
+        self.assertEqual(
+            {entry.id for entry in draws},
+            {entry.id for entry in entries},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

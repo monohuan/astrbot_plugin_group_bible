@@ -34,7 +34,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.1.0")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.2.0")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
