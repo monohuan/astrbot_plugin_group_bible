@@ -2,29 +2,29 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=580">
+<meta name="viewport" content="width=520">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:580px;background:#f4f4f5}
+html,body{width:520px;background:#f7f7f8}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#24262b}
-.card{width:580px;padding:20px 22px 18px;background:#f4f4f5}
-.message{display:flex;align-items:flex-start;gap:12px}
-.avatar{width:50px;height:50px;flex:0 0 50px;border-radius:50%;object-fit:cover;background:#e4e5e8;border:1px solid rgba(0,0,0,.08)}
-.message-main{min-width:0;max-width:474px;padding-top:1px}
-.name-row{height:24px;display:flex;align-items:center;gap:8px;padding-left:2px;white-space:nowrap;overflow:hidden}
-.name{max-width:250px;overflow:hidden;text-overflow:ellipsis;color:#75839a;font-size:16px;font-weight:500}
-.time{color:#a2a3a8;font-size:12px;font-variant-numeric:tabular-nums}
-.bubble{position:relative;display:inline-block;min-width:46px;max-width:100%;margin-top:3px;padding:9px 13px 10px;background:#fff;border:1.5px solid #24262b;border-radius:10px;box-shadow:0 1px 1px rgba(0,0,0,.03)}
-.bubble:before{content:"";position:absolute;left:-7px;top:12px;width:11px;height:11px;background:#fff;border-left:1.5px solid #24262b;border-bottom:1.5px solid #24262b;transform:rotate(45deg);border-bottom-left-radius:2px}
-.text{position:relative;z-index:1;color:#667894;font-size:18px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.images{position:relative;z-index:1;display:grid;gap:5px;overflow:hidden}
-.text+.images{margin-top:9px}
-.images img{display:block;width:100%;height:100%;object-fit:cover;background:#f0f0f2;border-radius:5px}
-.grid-1{grid-template-columns:1fr}.grid-1 img{height:auto;max-height:680px;object-fit:contain}
+.card{width:520px;padding:14px 16px 16px;background:#f7f7f8}
+.message{display:flex;align-items:flex-start;gap:10px}
+.avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;object-fit:cover;background:#e5e7eb;border:1px solid rgba(0,0,0,.06)}
+.message-main{min-width:0;max-width:432px}
+.name-row{height:24px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden}
+.name{max-width:230px;overflow:hidden;text-overflow:ellipsis;color:#8b8e96;font-size:15px;font-weight:500}
+.time{color:#b0b2b8;font-size:11px;font-variant-numeric:tabular-nums}
+.entry-id{color:#c0c2c7;font-size:10px}
+.bubble{display:inline-block;min-width:42px;max-width:100%;padding:7px 11px 8px;background:#fff;border:1px solid #303238;border-radius:8px}
+.bubble.image-only{padding:4px}
+.text{color:#7586a2;font-size:17px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.images{display:grid;gap:4px;overflow:hidden;border-radius:5px}
+.text+.images{margin-top:8px}
+.images img{display:block;width:100%;height:100%;object-fit:cover;background:#f0f1f3;border-radius:4px}
+.grid-1{grid-template-columns:1fr}.grid-1 img{height:auto;max-height:640px;object-fit:contain}
 .grid-2,.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
 .grid-3,.grid-5,.grid-6,.grid-7,.grid-8,.grid-9{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grid-2 img,.grid-3 img,.grid-4 img,.grid-5 img,.grid-6 img,.grid-7 img,.grid-8 img,.grid-9 img{aspect-ratio:1/1}
-.note{padding:5px 0 0 3px;color:#a7a8ad;font-size:10px;letter-spacing:.2px}
 </style>
 </head>
 <body>
@@ -32,12 +32,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   <article class="message">
     <img class="avatar" src="{{ avatar }}">
     <div class="message-main">
-      <div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span></div>
-      <div class="bubble">
+      <div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>{% if entry_id %}<span class="entry-id">#{{ entry_id }}</span>{% endif %}</div>
+      <div class="bubble{% if images and not text %} image-only{% endif %}">
         {% if text %}<div class="text">{{ text }}</div>{% endif %}
         {% if images %}<div class="images grid-{{ image_count }}">{% for image in images %}<img src="{{ image }}">{% endfor %}</div>{% endif %}
       </div>
-      <div class="note">GROUP BIBLE{% if entry_id %} · #{{ entry_id }}{% endif %} · COLLECTED BY {{ collector_name }}</div>
     </div>
   </article>
 </main>

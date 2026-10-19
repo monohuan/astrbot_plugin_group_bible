@@ -35,12 +35,16 @@ class ContractTests(unittest.TestCase):
 
     def test_entry_template_uses_chat_bubble_layout(self):
         template = (PLUGIN / "assets" / "bible.html").read_text(encoding="utf-8")
-        self.assertIn('class="bubble"', template)
-        self.assertIn("border:1.5px solid #24262b", template)
+        self.assertIn('class="bubble{% if images and not text %}', template)
+        self.assertIn("border:1px solid #303238", template)
+        self.assertNotIn("bubble:before", template)
+        self.assertNotIn("COLLECTED BY", template)
         self.assertIn(
             '<span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>',
             template,
         )
+        renderer = (PLUGIN / "renderer.py").read_text(encoding="utf-8")
+        self.assertIn('%Y-%m-%d %H:%M:%S', renderer)
 
 
 if __name__ == "__main__":

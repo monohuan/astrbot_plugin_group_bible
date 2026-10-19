@@ -38,6 +38,12 @@ class BibleRenderer:
         return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M")
 
     @staticmethod
+    def _format_chat_time(timestamp: int) -> str:
+        if not timestamp:
+            return ""
+        return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+
+    @staticmethod
     def _fallback_avatar(name: str) -> str:
         letter = html.escape((name or "?")[:1])
         svg = (
@@ -63,7 +69,7 @@ class BibleRenderer:
             "author_name": html.escape(entry.author_name),
             "author_id": html.escape(entry.author_id),
             "avatar": avatar or self._fallback_avatar(entry.author_name),
-            "timestamp": self._format_time(entry.source_time),
+            "timestamp": self._format_chat_time(entry.source_time),
             "text": html.escape(entry.plain_text),
             "images": images,
             "image_count": len(images),
