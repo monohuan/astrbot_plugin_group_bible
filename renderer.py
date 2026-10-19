@@ -42,8 +42,8 @@ class BibleRenderer:
         letter = html.escape((name or "?")[:1])
         svg = (
             '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96">'
-            '<rect width="96" height="96" rx="48" fill="#25252a"/>'
-            f'<text x="48" y="61" text-anchor="middle" font-size="42" fill="#7CB342">{letter}</text>'
+            '<rect width="96" height="96" rx="48" fill="#dfe3ea"/>'
+            f'<text x="48" y="61" text-anchor="middle" font-size="42" fill="#75839a">{letter}</text>'
             "</svg>"
         )
         return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()

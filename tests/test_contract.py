@@ -26,11 +26,21 @@ class ContractTests(unittest.TestCase):
         self.assertIn("priority=10_000", source)
 
     def test_templates_keep_mutsumi_dark_visual_tokens(self):
-        for name in ("bible.html", "bible_list.html"):
-            template = (PLUGIN / "assets" / name).read_text(encoding="utf-8")
-            self.assertIn("#0a0a0c", template)
-            self.assertIn("#121214", template)
-            self.assertIn("#7CB342", template)
+        template = (PLUGIN / "assets" / "bible_list.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("#0a0a0c", template)
+        self.assertIn("#121214", template)
+        self.assertIn("#7CB342", template)
+
+    def test_entry_template_uses_chat_bubble_layout(self):
+        template = (PLUGIN / "assets" / "bible.html").read_text(encoding="utf-8")
+        self.assertIn('class="bubble"', template)
+        self.assertIn("border:1.5px solid #24262b", template)
+        self.assertIn(
+            '<span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>',
+            template,
+        )
 
 
 if __name__ == "__main__":
