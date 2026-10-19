@@ -60,6 +60,29 @@ class BibleStoreTests(unittest.TestCase):
         self.assertEqual(removed.id, first.id)
         self.assertEqual(run(self.store.count("100")), 0)
 
+    def test_list_pages_return_different_entries(self):
+        entries = [
+            run(self.store.add(payload(message=str(900 + index)))) for index in range(6)
+        ]
+
+        first_page, total = run(self.store.list_page("100", 1, 3))
+        second_page, _ = run(self.store.list_page("100", 2, 3))
+
+        self.assertEqual(total, 6)
+        self.assertEqual(
+            [entry.id for entry in first_page],
+            [entry.id for entry in reversed(entries[3:])],
+        )
+        self.assertEqual(
+            [entry.id for entry in second_page],
+            [entry.id for entry in reversed(entries[:3])],
+        )
+        self.assertTrue(
+            {entry.id for entry in first_page}.isdisjoint(
+                entry.id for entry in second_page
+            )
+        )
+
     def test_duplicate_source_message_is_rejected_per_group(self):
         run(self.store.add(payload()))
         with self.assertRaises(DuplicateBibleError):

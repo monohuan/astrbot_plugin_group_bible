@@ -9,6 +9,9 @@ class ContractTests(unittest.TestCase):
     def test_english_command_contract(self):
         source = (PLUGIN / "main.py").read_text(encoding="utf-8")
         self.assertIn('@filter.command("gbible")', source)
+        self.assertIn('action: str = ""', source)
+        self.assertIn('argument: str = ""', source)
+        self.assertNotIn("GreedyStr", source)
         self.assertIn('action == "add"', source)
         self.assertIn('action == "random"', source)
         self.assertIn('action == "del"', source)

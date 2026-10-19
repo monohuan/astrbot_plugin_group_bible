@@ -16,7 +16,6 @@ from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
 from astrbot.api.message_components import Reply
 from astrbot.api.star import Context, Star, StarTools, register
-from astrbot.core.star.filter.command import GreedyStr
 
 from .database import BibleEntry, BibleStore, DuplicateBibleError
 from .renderer import BibleRenderer
@@ -34,7 +33,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.3.0")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录与随机爆典", "1.3.1")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
@@ -449,13 +448,17 @@ class GroupBiblePlugin(Star):
             await self._home(event)
 
     @filter.command("gbible")
-    async def group_bible_en(self, event: AstrMessageEvent, raw_args: GreedyStr = ""):
-        args = str(raw_args or "").strip().split()
-        if not args:
+    async def group_bible_en(
+        self,
+        event: AstrMessageEvent,
+        action: str = "",
+        argument: str = "",
+    ):
+        action = str(action or "").strip().lower()
+        tail = str(argument or "").strip()
+        if not action:
             await self._home(event)
             return
-        action = args[0].lower()
-        tail = args[1] if len(args) > 1 else ""
         if action == "add":
             await self._add(event)
         elif action == "random":

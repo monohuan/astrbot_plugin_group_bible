@@ -96,5 +96,21 @@ class PokeCompatibilityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(plugin.sent, [])
 
 
+class EnglishCommandTests(unittest.IsolatedAsyncioTestCase):
+    async def test_list_subcommand_preserves_page_argument(self):
+        plugin = object.__new__(GroupBiblePlugin)
+        calls = []
+
+        async def list_entries(event, page):
+            calls.append((event, page))
+
+        plugin._list = list_entries
+        event = object()
+
+        await plugin.group_bible_en(event, "list", "2")
+
+        self.assertEqual(calls, [(event, "2")])
+
+
 if __name__ == "__main__":
     unittest.main()
