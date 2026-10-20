@@ -46,7 +46,8 @@ class ContractTests(unittest.TestCase):
         self.assertIn(".bubble.image-only{display:block;width:100%", template)
         self.assertIn('class="quote-card"', template)
         self.assertIn('class="badge">群圣经</span>', template)
-        self.assertNotIn('class="avatar"', template)
+        self.assertIn('class="avatar" src="{{ avatar }}"', template)
+        self.assertIn('class="header"', template)
         self.assertNotIn("fit-content", template)
         self.assertNotIn("collect by", template)
         self.assertIn(
