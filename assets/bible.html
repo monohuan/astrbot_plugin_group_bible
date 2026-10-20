@@ -2,22 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=520">
+<meta name="viewport" content="width=400">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:520px;background:#f7f7f8}
+html,body{width:400px;background:#f7f7f8}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#24262b}
-.card{width:520px;padding:14px 16px 16px;background:#f7f7f8}
+.card{width:400px;padding:14px 16px 16px;background:#f7f7f8}
 .message{display:flex;align-items:flex-start;gap:10px}
 .avatar{width:46px;height:46px;flex:0 0 46px;border-radius:50%;object-fit:cover;background:#e5e7eb;border:1px solid rgba(0,0,0,.06)}
-.message-main{min-width:0;max-width:432px}
-.name-row{height:24px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden}
-.name{max-width:230px;overflow:hidden;text-overflow:ellipsis;color:#8b8e96;font-size:15px;font-weight:500}
+.message-main{min-width:0;width:312px;max-width:312px}
+.name-row{min-height:24px;display:flex;align-items:baseline;flex-wrap:wrap;column-gap:7px;row-gap:1px;padding-bottom:3px}
+.name{max-width:100%;overflow-wrap:anywhere;color:#8b8e96;font-size:15px;font-weight:500}
 .time{color:#b0b2b8;font-size:11px;font-variant-numeric:tabular-nums}
+.collector{color:#b6b8bd;font-size:10px}
 .entry-id{color:#c0c2c7;font-size:10px}
-.bubble{display:inline-block;min-width:42px;max-width:100%;padding:7px 11px 8px;background:#fff;border:1px solid #303238;border-radius:8px}
+.bubble{display:inline-block;width:fit-content;min-width:42px;max-width:100%;padding:7px 11px 8px;background:#fff;border:1px solid #303238;border-radius:8px}
 .bubble.image-only{padding:4px}
-.text{color:#7586a2;font-size:17px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.text{max-width:100%;color:#7586a2;font-size:17px;line-height:1.5;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
 .images{display:grid;gap:4px;overflow:hidden;border-radius:5px}
 .text+.images{margin-top:8px}
 .images img{display:block;width:100%;height:100%;object-fit:cover;background:#f0f1f3;border-radius:4px}
@@ -32,7 +33,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   <article class="message">
     <img class="avatar" src="{{ avatar }}">
     <div class="message-main">
-      <div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>{% if entry_id %}<span class="entry-id">#{{ entry_id }}</span>{% endif %}</div>
+      <div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span><span class="collector">collect by {{ collector_name }}</span>{% if entry_id %}<span class="entry-id">#{{ entry_id }}</span>{% endif %}</div>
       <div class="bubble{% if images and not text %} image-only{% endif %}">
         {% if text %}<div class="text">{{ text }}</div>{% endif %}
         {% if images %}<div class="images grid-{{ image_count }}">{% for image in images %}<img src="{{ image }}">{% endfor %}</div>{% endif %}

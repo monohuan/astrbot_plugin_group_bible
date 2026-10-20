@@ -38,7 +38,10 @@ class ContractTests(unittest.TestCase):
         self.assertIn('class="bubble{% if images and not text %}', template)
         self.assertIn("border:1px solid #303238", template)
         self.assertNotIn("bubble:before", template)
-        self.assertNotIn("COLLECTED BY", template)
+        self.assertIn("width=400", template)
+        self.assertIn("flex-wrap:wrap", template)
+        self.assertIn("overflow-wrap:anywhere", template)
+        self.assertIn("collect by {{ collector_name }}", template)
         self.assertIn(
             '<span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>',
             template,
