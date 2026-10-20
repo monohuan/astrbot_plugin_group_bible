@@ -43,6 +43,9 @@ class ContractTests(unittest.TestCase):
         self.assertIn("flex-wrap:wrap", template)
         self.assertIn("overflow-wrap:anywhere", template)
         self.assertIn(".bubble{display:block;width:100%", template)
+        self.assertIn('class="quote-card"', template)
+        self.assertIn('class="badge">群圣经</span>', template)
+        self.assertNotIn('class="avatar"', template)
         self.assertNotIn("fit-content", template)
         self.assertNotIn("collect by", template)
         self.assertIn(
