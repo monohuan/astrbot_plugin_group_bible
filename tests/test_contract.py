@@ -39,7 +39,7 @@ class ContractTests(unittest.TestCase):
         self.assertIn("border:1px solid #303238", template)
         self.assertNotIn("bubble:before", template)
         self.assertIn("width=320", template)
-        self.assertIn("min-height:140px", template)
+        self.assertNotIn("min-height:140px", template)
         self.assertIn("flex-wrap:wrap", template)
         self.assertIn("overflow-wrap:anywhere", template)
         self.assertIn(".bubble{display:inline-block;width:auto;max-width:100%", template)
@@ -50,10 +50,9 @@ class ContractTests(unittest.TestCase):
         self.assertIn('class="avatar" src="{{ avatar }}"', template)
         self.assertNotIn("fit-content", template)
         self.assertNotIn("collect by", template)
-        self.assertIn(
-            '<span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>',
-            template,
-        )
+        self.assertIn('<div class="name-row"><span class="name">{{ author_name }}</span></div>', template)
+        self.assertIn('class="meta-row"', template)
+        self.assertLess(template.index('class="entry-id"'), template.index('class="time"'))
         renderer = (PLUGIN / "renderer.py").read_text(encoding="utf-8")
         self.assertIn('%Y-%m-%d %H:%M:%S', renderer)
 

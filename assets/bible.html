@@ -5,14 +5,15 @@
 <meta name="viewport" content="width=320">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:320px;min-height:140px;background:#f7f7f8}
+html,body{width:320px;background:#f7f7f8}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#24262b}
-.card{width:320px;min-height:140px;padding:14px;background:#f7f7f8}
+.card{width:320px;padding:14px;background:#f7f7f8}
 .message{display:flex;align-items:flex-start;gap:9px}
 .avatar{width:44px;height:44px;flex:0 0 44px;border-radius:50%;object-fit:cover;background:#e5e7eb;border:1px solid rgba(0,0,0,.06)}
 .message-main{min-width:0;width:239px;max-width:239px}
-.name-row{min-height:25px;display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;row-gap:1px;padding-bottom:3px}
-.name{max-width:100%;overflow-wrap:anywhere;color:#737780;font-size:15px;font-weight:500}
+.name-row{min-height:21px;padding-bottom:1px;line-height:1.35}
+.name{display:block;max-width:100%;overflow-wrap:anywhere;color:#737780;font-size:15px;font-weight:500}
+.meta-row{min-height:18px;display:flex;align-items:baseline;flex-wrap:wrap;column-gap:8px;row-gap:1px;padding-bottom:4px}
 .time{color:#b0b2b8;font-size:11px;font-variant-numeric:tabular-nums}
 .entry-id{color:#c0c2c7;font-size:10px}
 .bubble{display:inline-block;width:auto;max-width:100%;padding:8px 11px 9px;background:#fff;border:1px solid #303238;border-radius:8px;overflow:hidden;vertical-align:top}
@@ -32,7 +33,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Micr
   <article class="message">
     <img class="avatar" src="{{ avatar }}">
     <div class="message-main">
-      <div class="name-row"><span class="name">{{ author_name }}</span><span class="time">{{ timestamp }}</span>{% if entry_id %}<span class="entry-id">#{{ entry_id }}</span>{% endif %}</div>
+      <div class="name-row"><span class="name">{{ author_name }}</span></div>
+      <div class="meta-row">{% if entry_id %}<span class="entry-id">#{{ entry_id }}</span>{% endif %}<span class="time">{{ timestamp }}</span></div>
       <div class="bubble{% if images %} image-only{% endif %}">
         {% if text %}<div class="text">{{ text }}</div>{% endif %}
         {% if images %}<div class="images grid-{{ image_count }}">{% for image in images %}<img src="{{ image }}">{% endfor %}</div>{% endif %}
