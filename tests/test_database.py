@@ -93,7 +93,7 @@ class BibleStoreTests(unittest.TestCase):
         run(self.store.add(image_only))
         run(self.store.add(payload(group="101", message="1000")))
 
-        sampled = run(self.store.sample_text("100", 20))
+        sampled = run(self.store.sample_story("100", 20, include_images=False))
 
         self.assertEqual(
             {entry.id for entry in sampled}, {entry.id for entry in text_entries}
@@ -102,6 +102,11 @@ class BibleStoreTests(unittest.TestCase):
         self.assertTrue(
             all(entry.group_id == "100" and entry.plain_text for entry in sampled)
         )
+
+        with_images = run(self.store.sample_story("100", 20, include_images=True))
+        self.assertIn(image_only["source_message_id"], {
+            item.source_message_id for item in with_images
+        })
 
     def test_duplicate_source_message_is_rejected_per_group(self):
         run(self.store.add(payload()))

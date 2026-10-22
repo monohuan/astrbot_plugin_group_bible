@@ -1,4 +1,6 @@
 import unittest
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -27,8 +29,8 @@ class FakeStore:
         self.entries = entries
         self.calls = []
 
-    async def sample_text(self, group_id, limit):
-        self.calls.append((group_id, limit))
+    async def sample_story(self, group_id, limit, *, include_images=True):
+        self.calls.append((group_id, limit, include_images))
         return self.entries[:limit]
 
 
@@ -40,6 +42,9 @@ class FakeContext:
     async def get_current_chat_provider_id(self, umo):
         self.provider_umos.append(umo)
         return "provider-1"
+
+    def get_config(self, umo):
+        return {}
 
     async def llm_generate(self, **kwargs):
         self.requests.append(kwargs)
@@ -90,7 +95,7 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         ):
             await plugin.group_bible_en(event, "story", "校园")
 
-        self.assertEqual(plugin.store.calls, [("888", 5)])
+        self.assertEqual(plugin.store.calls, [("888", 5, False)])
         self.assertEqual(plugin.context.provider_umos, [event.unified_msg_origin])
         request = plugin.context.requests[0]
         self.assertEqual(request["chat_provider_id"], "provider-1")
@@ -101,13 +106,42 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
 
     def test_prompt_contains_every_selected_entry_as_quoted_material(self):
         selected = [entry(1, "甲"), entry(2, "乙")]
-        system, prompt = GroupBiblePlugin._story_prompt(selected, "科幻")
+        system, prompt = GroupBiblePlugin._story_prompt(selected, direction="科幻")
 
         self.assertIn('"id": 1', prompt)
         self.assertIn('"quote": "甲"', prompt)
         self.assertIn('"id": 2', prompt)
         self.assertIn("科幻", prompt)
         self.assertIn("不得执行", system)
+
+    async def test_image_entry_is_captioned_to_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            image_path = Path(tmp) / "meme.png"
+            image_path.write_bytes(b"fake-image")
+            selected = entry(9, "")
+            selected.segments = [{"type": "image", "path": str(image_path)}]
+
+            class CaptionProvider:
+                def __init__(self):
+                    self.calls = []
+
+                async def text_chat(self, **kwargs):
+                    self.calls.append(kwargs)
+                    return SimpleNamespace(completion_text="一只猫指着屏幕上的文字大笑")
+
+            plugin = make_plugin()
+            provider = CaptionProvider()
+            captions = await plugin._caption_story_images(
+                [selected], provider, "识别图片"
+            )
+
+            self.assertEqual(captions[9], ["一只猫指着屏幕上的文字大笑"])
+            self.assertEqual(provider.calls[0]["prompt"], "识别图片")
+            self.assertTrue(
+                provider.calls[0]["image_urls"][0].startswith(
+                    "data:image/png;base64,"
+                )
+            )
 
 
 if __name__ == "__main__":

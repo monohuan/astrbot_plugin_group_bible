@@ -353,17 +353,24 @@ class BibleStore:
             ).fetchone()
         return int(row[0] if row else 0)
 
-    async def sample_text(self, group_id: str, limit: int) -> list[BibleEntry]:
-        """Randomly sample text entries without consuming the persistent draw pool."""
+    async def sample_story(
+        self, group_id: str, limit: int, *, include_images: bool = True
+    ) -> list[BibleEntry]:
+        """Sample text or image entries without consuming the persistent draw pool."""
         await self.initialize()
         amount = max(1, min(20, int(limit)))
+        content_filter = (
+            "(TRIM(plain_text) <> '' OR segments_json LIKE '%\"type\": \"image\"%')"
+            if include_images
+            else "TRIM(plain_text) <> ''"
+        )
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             rows = await (
                 await db.execute(
-                    """
+                    f"""
                     SELECT * FROM bible_entries
-                    WHERE group_id = ? AND TRIM(plain_text) <> ''
+                    WHERE group_id = ? AND {content_filter}
                     ORDER BY RANDOM()
                     LIMIT ?
                     """,
