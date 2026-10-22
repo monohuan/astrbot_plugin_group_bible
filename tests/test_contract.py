@@ -27,6 +27,8 @@ class ContractTests(unittest.TestCase):
         self.assertIn("self.context.llm_generate(", source)
         self.assertIn("self.store.sample_story(", source)
         self.assertIn("include_images=caption_provider is not None", source)
+        self.assertIn("self._format_story(story, entries)", source)
+        self.assertIn("Nodes([node])", source)
 
     def test_poke_handoff_contract(self):
         source = (PLUGIN / "main.py").read_text(encoding="utf-8")
