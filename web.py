@@ -23,6 +23,8 @@ EDITABLE_CONFIG = {
     "poke_cooldown_seconds": (int, 0, 3600),
     "random_pool_copies": (int, 1, 100),
     "random_pool_reset_minutes": (int, 0, 525600),
+    "story_min_entries": (int, 1, 20),
+    "story_max_entries": (int, 1, 20),
     "list_page_size": (int, 5, 20),
     "max_text_length": (int, 1, 20000),
     "max_images": (int, 0, 20),
@@ -191,6 +193,13 @@ class GroupBibleWebController:
                 if maximum is not None and normalized > maximum:
                     raise ValueError(f"{key} 不能大于 {maximum}")
             updated[key] = normalized
+
+        prospective = dict(self.config)
+        prospective.update(updated)
+        story_min = int(prospective.get("story_min_entries", 3))
+        story_max = int(prospective.get("story_max_entries", 6))
+        if story_min > story_max:
+            raise ValueError("故事最少抽取条数不能大于最多抽取条数")
 
         self.config.update(updated)
         save = getattr(self.config, "save_config", None)

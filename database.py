@@ -353,6 +353,25 @@ class BibleStore:
             ).fetchone()
         return int(row[0] if row else 0)
 
+    async def sample_text(self, group_id: str, limit: int) -> list[BibleEntry]:
+        """Randomly sample text entries without consuming the persistent draw pool."""
+        await self.initialize()
+        amount = max(1, min(20, int(limit)))
+        async with aiosqlite.connect(self.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            rows = await (
+                await db.execute(
+                    """
+                    SELECT * FROM bible_entries
+                    WHERE group_id = ? AND TRIM(plain_text) <> ''
+                    ORDER BY RANDOM()
+                    LIMIT ?
+                    """,
+                    (group_id, amount),
+                )
+            ).fetchall()
+        return [self._row_to_entry(row) for row in rows if row is not None]
+
     async def list_page(
         self, group_id: str, page: int, page_size: int
     ) -> tuple[list[BibleEntry], int]:

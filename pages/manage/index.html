@@ -66,6 +66,8 @@
         <label><span>戳一戳冷却（秒）</span><input name="poke_cooldown_seconds" type="number" min="0" max="3600"></label>
         <label><span>随机池套数</span><input name="random_pool_copies" type="number" min="1" max="100"><small>每条典在一轮池中出现的份数</small></label>
         <label><span>随机池定时重置（分钟）</span><input name="random_pool_reset_minutes" type="number" min="0" max="525600"><small>0 表示不按时间重置</small></label>
+        <label><span>故事最少抽取条数</span><input name="story_min_entries" type="number" min="1" max="20"><small>默认 3 条</small></label>
+        <label><span>故事最多抽取条数</span><input name="story_max_entries" type="number" min="1" max="20"><small>默认 6 条，不能小于最少条数</small></label>
         <label><span>列表每页条数</span><input name="list_page_size" type="number" min="5" max="20"></label>
         <label><span>最大文字长度</span><input name="max_text_length" type="number" min="1" max="20000"></label>
         <label><span>最大图片数</span><input name="max_images" type="number" min="0" max="20"></label>

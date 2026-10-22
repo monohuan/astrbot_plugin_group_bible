@@ -30,6 +30,18 @@
     "default": 0,
     "hint": "从本轮随机池建立时开始计时，到期后在下次爆典时重建；设为 0 表示不按时间重置。"
   },
+  "story_min_entries": {
+    "description": "故事最少抽取条数",
+    "type": "int",
+    "default": 3,
+    "hint": "生成故事时至少随机抽取多少条文字典，可设置 1 至 20。"
+  },
+  "story_max_entries": {
+    "description": "故事最多抽取条数",
+    "type": "int",
+    "default": 6,
+    "hint": "生成故事时最多随机抽取多少条文字典，可设置 1 至 20，且不能小于最少条数。"
+  },
   "list_page_size": {
     "description": "列表每页条数",
     "type": "int",

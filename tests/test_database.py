@@ -83,6 +83,26 @@ class BibleStoreTests(unittest.TestCase):
             )
         )
 
+    def test_story_sample_is_group_scoped_unique_and_text_only(self):
+        text_entries = [
+            run(self.store.add(payload(message=str(950 + index)))) for index in range(3)
+        ]
+        image_only = payload(message="999")
+        image_only["plain_text"] = ""
+        image_only["segments"] = [{"type": "image", "path": "/tmp/test.jpg"}]
+        run(self.store.add(image_only))
+        run(self.store.add(payload(group="101", message="1000")))
+
+        sampled = run(self.store.sample_text("100", 20))
+
+        self.assertEqual(
+            {entry.id for entry in sampled}, {entry.id for entry in text_entries}
+        )
+        self.assertEqual(len(sampled), len({entry.id for entry in sampled}))
+        self.assertTrue(
+            all(entry.group_id == "100" and entry.plain_text for entry in sampled)
+        )
+
     def test_duplicate_source_message_is_rejected_per_group(self):
         run(self.store.add(payload()))
         with self.assertRaises(DuplicateBibleError):

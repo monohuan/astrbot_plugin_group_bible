@@ -43,6 +43,8 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
             poke_cooldown_seconds=10,
             random_pool_copies=1,
             random_pool_reset_minutes=0,
+            story_min_entries=3,
+            story_max_entries=6,
             list_page_size=10,
             max_text_length=3000,
             max_images=9,
@@ -97,6 +99,8 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
                 "enable_poke_random": False,
                 "random_pool_copies": 3,
                 "random_pool_reset_minutes": 1440,
+                "story_min_entries": 4,
+                "story_max_entries": 8,
             },
         )
         payload = await response.get_json()
@@ -105,6 +109,8 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.config["enable_poke_random"])
         self.assertEqual(self.config["random_pool_copies"], 3)
         self.assertEqual(self.config["random_pool_reset_minutes"], 1440)
+        self.assertEqual(self.config["story_min_entries"], 4)
+        self.assertEqual(self.config["story_max_entries"], 8)
         self.assertEqual(self.config.saved, 1)
         self.assertEqual(self.changed, 1)
 
@@ -126,6 +132,10 @@ class WebUITests(unittest.IsolatedAsyncioTestCase):
             "/config", json={"random_pool_reset_minutes": -1}
         )
         self.assertEqual(response.status_code, 400)
+        response = await self.client.post(
+            "/config", json={"story_min_entries": 9, "story_max_entries": 3}
+        )
+        self.assertEqual(response.status_code, 400)
 
 
 class WebUIAssetTests(unittest.TestCase):
@@ -136,6 +146,10 @@ class WebUIAssetTests(unittest.TestCase):
         self.assertIn("./styles.css", html)
         self.assertIn("./app.js", html)
         self.assertIn("window.AstrBotPluginPage", js)
+        self.assertIn('name="story_min_entries"', html)
+        self.assertIn('name="story_max_entries"', html)
+        self.assertIn("story_min_entries", js)
+        self.assertIn("story_max_entries", js)
         self.assertNotIn("http://", html + js)
         self.assertNotIn("https://", html + js)
 

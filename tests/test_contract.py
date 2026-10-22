@@ -15,7 +15,17 @@ class ContractTests(unittest.TestCase):
         self.assertIn('action == "add"', source)
         self.assertIn('action == "random"', source)
         self.assertIn('action == "del"', source)
+        self.assertIn('action == "story"', source)
+        self.assertIn('@filter.command("故事")', source)
         self.assertNotIn('action == "delete"', source)
+
+    def test_story_uses_current_session_provider_and_configured_range(self):
+        source = (PLUGIN / "main.py").read_text(encoding="utf-8")
+        self.assertIn('"story_min_entries", 3, 1, 20', source)
+        self.assertIn('"story_max_entries", 6, 1, 20', source)
+        self.assertIn("get_current_chat_provider_id(umo)", source)
+        self.assertIn("self.context.llm_generate(", source)
+        self.assertIn("self.store.sample_text(group_id, wanted)", source)
 
     def test_poke_handoff_contract(self):
         source = (PLUGIN / "main.py").read_text(encoding="utf-8")
