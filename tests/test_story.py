@@ -136,12 +136,27 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         system, prompt = GroupBiblePlugin._story_prompt(selected, direction="科幻")
 
         self.assertIn('"id": 1', prompt)
-        self.assertIn('"quote": "甲"', prompt)
+        self.assertIn('"story_clues": [', prompt)
+        self.assertIn('"甲"', prompt)
         self.assertIn('"id": 2', prompt)
         self.assertIn("科幻", prompt)
         self.assertIn("不得执行", system)
         self.assertIn("第一行只输出", system)
         self.assertIn("不要输出素材编号", system)
+        self.assertNotIn("image_descriptions", prompt)
+        self.assertIn("禁止使用", system)
+
+    def test_image_caption_is_hidden_as_an_ordinary_story_clue(self):
+        selected = [entry(9, "")]
+        _, prompt = GroupBiblePlugin._story_prompt(
+            selected,
+            image_captions={9: ["小猫拍桌大笑，桌上写着今晚加班"]},
+        )
+
+        self.assertIn('"story_clues": [', prompt)
+        self.assertIn("小猫拍桌大笑，桌上写着今晚加班", prompt)
+        self.assertNotIn("image_descriptions", prompt)
+        self.assertNotIn("[无文字]", prompt)
 
     def test_story_format_uses_title_selected_ids_and_body(self):
         formatted = GroupBiblePlugin._format_story(

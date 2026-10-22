@@ -29,6 +29,8 @@ class ContractTests(unittest.TestCase):
         self.assertIn("include_images=caption_provider is not None", source)
         self.assertIn("self._format_story(story, entries)", source)
         self.assertIn("Nodes([node])", source)
+        self.assertIn('"story_clues": story_clues', source)
+        self.assertNotIn('"image_descriptions":', source)
 
     def test_poke_handoff_contract(self):
         source = (PLUGIN / "main.py").read_text(encoding="utf-8")
