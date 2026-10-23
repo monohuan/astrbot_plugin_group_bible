@@ -51,6 +51,16 @@ class FakeContext:
         self.requests.append(kwargs)
         return SimpleNamespace(completion_text="《测试故事》\n这是生成的故事。")
 
+    def get_platform_inst(self, platform_id):
+        self.platform_id = platform_id
+        return SimpleNamespace(get_client=lambda: FakeClient())
+
+
+class FakeClient:
+    async def call_action(self, action):
+        assert action == "get_login_info"
+        return {"data": {"user_id": 999, "nickname": "测试机器人"}}
+
 
 class FakeRenderer:
     def __init__(self):
@@ -141,10 +151,9 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
             "《测试故事》\n#01/#02/#03/#04/#05\n这是生成的故事。",
         )
         self.assertEqual(plugin.renderer.entries, [1, 2, 3, 4, 5])
-        self.assertEqual(
-            [node.name for node in nodes.nodes[1:]],
-            ["群圣经 #1", "群圣经 #2", "群圣经 #3", "群圣经 #4", "群圣经 #5"],
-        )
+        self.assertEqual([node.name for node in nodes.nodes], ["测试机器人"] * 6)
+        self.assertEqual([str(node.uin) for node in nodes.nodes], ["999"] * 6)
+        self.assertEqual(plugin.context.platform_id, "aiocqhttp")
         self.assertEqual(
             nodes.nodes[1].content[0].text,
             "群圣经 #1\n群友1：第一条典",

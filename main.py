@@ -37,7 +37,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录、随机爆典与故事生成", "1.5.3")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录、随机爆典与故事生成", "1.5.4")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
@@ -51,6 +51,7 @@ class GroupBiblePlugin(Star):
             Path(__file__).parent / "assets",
             show_id=bool(self.config.get("show_bible_id", True)),
         )
+        self._bot_identity_cache: dict[str, tuple[str, str]] = {}
         self._poke_last_at: dict[str, float] = {}
         self._asset_lock = asyncio.Lock()
         self.web = GroupBibleWebController(
@@ -609,22 +610,52 @@ class GroupBiblePlugin(Star):
                 content.append(Image.fromFileSystem(str(path)))
         return content
 
+    async def _bot_identity(self, event: AstrMessageEvent) -> tuple[str, str]:
+        fallback_id = str(event.get_self_id() or "0")
+        umo = str(getattr(event, "unified_msg_origin", "") or "")
+        platform_id = umo.split(":", 1)[0]
+        cache = getattr(self, "_bot_identity_cache", None)
+        if cache is None:
+            cache = self._bot_identity_cache = {}
+        if platform_id and platform_id in cache:
+            return cache[platform_id]
+
+        identity = (fallback_id, "AstrBot")
+        resolved = False
+        try:
+            platform = self.context.get_platform_inst(platform_id)
+            client = platform.get_client() if platform else None
+            if client is not None and hasattr(client, "call_action"):
+                raw = await client.call_action("get_login_info")
+                data = raw.get("data", raw) if isinstance(raw, dict) else {}
+                if isinstance(data, dict):
+                    bot_id = str(data.get("user_id") or fallback_id)
+                    nickname = str(data.get("nickname") or "AstrBot")
+                    identity = (bot_id, nickname)
+                    resolved = bool(data.get("user_id") or data.get("nickname"))
+        except Exception as exc:
+            logger.warning("群圣经获取机器人昵称失败，使用默认身份: %s", exc)
+
+        if platform_id and resolved:
+            cache[platform_id] = identity
+        return identity
+
     async def _send_story(
         self,
         event: AstrMessageEvent,
         story: str,
         entries: list[BibleEntry],
     ) -> None:
-        bot_id = str(event.get_self_id() or "0")
-        nodes = [Node(uin=bot_id, name="群圣经故事", content=[Plain(story)])]
+        bot_id, bot_name = await self._bot_identity(event)
+        nodes = [Node(uin=bot_id, name=bot_name, content=[Plain(story)])]
         appendix_contents: list[list[Any]] = []
         for entry in entries:
             content = await self._story_entry_content(entry)
             appendix_contents.append(content)
             nodes.append(
                 Node(
-                    uin=str(entry.author_id or bot_id),
-                    name=f"群圣经 #{entry.id}",
+                    uin=bot_id,
+                    name=bot_name,
                     content=content,
                 )
             )

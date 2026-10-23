@@ -69,6 +69,8 @@ class ContractTests(unittest.TestCase):
         self.assertIn('<div class="name-row"><span class="name">{{ author_name }}</span></div>', template)
         self.assertIn('class="meta-row"', template)
         self.assertLess(template.index('class="entry-id"'), template.index('class="time"'))
+        self.assertLess(template.index('class="name-row"'), template.index('class="bubble'))
+        self.assertLess(template.index('class="bubble'), template.index('class="meta-row"'))
         renderer = (PLUGIN / "renderer.py").read_text(encoding="utf-8")
         self.assertIn('%Y-%m-%d %H:%M:%S', renderer)
 
