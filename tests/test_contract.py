@@ -28,7 +28,8 @@ class ContractTests(unittest.TestCase):
         self.assertIn("self.store.sample_story(", source)
         self.assertIn("include_images=caption_provider is not None", source)
         self.assertIn("self._format_story(story, entries)", source)
-        self.assertIn("Nodes([node])", source)
+        self.assertIn("Nodes(nodes)", source)
+        self.assertIn("self._story_entry_content(entry)", source)
         self.assertIn('"story_clues": story_clues', source)
         self.assertNotIn('"image_descriptions":', source)
 

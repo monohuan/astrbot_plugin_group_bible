@@ -17,7 +17,7 @@ import aiohttp
 
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageChain, filter
-from astrbot.api.message_components import Node, Nodes, Plain, Reply
+from astrbot.api.message_components import Image, Node, Nodes, Plain, Reply
 from astrbot.api.star import Context, Star, StarTools, register
 
 from .database import BibleEntry, BibleStore, DuplicateBibleError
@@ -37,7 +37,7 @@ HELP_TEXT = """【群圣经 / Group Bible】
 帮助：/群圣经帮助 或 /gbible help"""
 
 
-@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录、随机爆典与故事生成", "1.5.2")
+@register(PLUGIN_NAME, "Tyrkb", "群聊圣经收录、随机爆典与故事生成", "1.5.3")
 class GroupBiblePlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig | None = None):
         super().__init__(context)
@@ -592,14 +592,49 @@ class GroupBiblePlugin(Star):
         ids = "/".join(f"#{item.id:02d}" for item in entries)
         return f"{title}\n{ids}\n{body}".rstrip()
 
-    async def _send_story(self, event: AstrMessageEvent, story: str) -> None:
+    async def _story_entry_content(self, entry: BibleEntry) -> list[Any]:
+        rendered = await self.renderer.render_entry(entry)
+        if rendered:
+            return [Image.fromFileSystem(rendered)]
+
+        header = f"群圣经 #{entry.id}\n{entry.author_name}"
+        if entry.plain_text:
+            header += f"：{entry.plain_text}"
+        content: list[Any] = [Plain(header)]
+        for segment in entry.segments:
+            if segment.get("type") != "image" or not segment.get("path"):
+                continue
+            path = Path(str(segment["path"]))
+            if path.is_file():
+                content.append(Image.fromFileSystem(str(path)))
+        return content
+
+    async def _send_story(
+        self,
+        event: AstrMessageEvent,
+        story: str,
+        entries: list[BibleEntry],
+    ) -> None:
         bot_id = str(event.get_self_id() or "0")
-        node = Node(uin=bot_id, name="群圣经故事", content=[Plain(story)])
+        nodes = [Node(uin=bot_id, name="群圣经故事", content=[Plain(story)])]
+        appendix_contents: list[list[Any]] = []
+        for entry in entries:
+            content = await self._story_entry_content(entry)
+            appendix_contents.append(content)
+            nodes.append(
+                Node(
+                    uin=str(entry.author_id or bot_id),
+                    name=f"群圣经 #{entry.id}",
+                    content=content,
+                )
+            )
         try:
-            await event.send(MessageChain([Nodes([node])]))
+            await event.send(MessageChain([Nodes(nodes)]))
         except Exception as exc:
             logger.warning("群圣经故事合并转发失败，回退普通文本: %s", exc)
             await event.send(event.plain_result(story))
+            for content in appendix_contents:
+                await event.send(MessageChain(content))
         event.stop_event()
 
     async def _story(self, event: AstrMessageEvent, direction: str = "") -> None:
@@ -678,7 +713,7 @@ class GroupBiblePlugin(Star):
         if not story:
             await self._send_text(event, "模型没有生成故事，请稍后再试。")
             return
-        await self._send_story(event, self._format_story(story, entries))
+        await self._send_story(event, self._format_story(story, entries), entries)
 
     async def _home(self, event: AstrMessageEvent) -> None:
         group_id = str(event.get_group_id() or "")

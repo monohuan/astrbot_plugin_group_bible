@@ -52,6 +52,15 @@ class FakeContext:
         return SimpleNamespace(completion_text="《测试故事》\n这是生成的故事。")
 
 
+class FakeRenderer:
+    def __init__(self):
+        self.entries = []
+
+    async def render_entry(self, item):
+        self.entries.append(item.id)
+        return None
+
+
 class FakeEvent:
     unified_msg_origin = "aiocqhttp:GroupMessage:888"
     message_str = "/gbible story 校园 悬疑 喜剧"
@@ -92,6 +101,7 @@ def make_plugin():
         ]
     )
     plugin.context = FakeContext()
+    plugin.renderer = FakeRenderer()
     plugin.sent = []
 
     async def send_text(event, text):
@@ -124,11 +134,20 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(event.sent), 1)
         nodes = event.sent[0].chain[0]
         self.assertIsInstance(nodes, Nodes)
-        self.assertEqual(len(nodes.nodes), 1)
+        self.assertEqual(len(nodes.nodes), 6)
         self.assertIsInstance(nodes.nodes[0].content[0], Plain)
         self.assertEqual(
             nodes.nodes[0].content[0].text,
             "《测试故事》\n#01/#02/#03/#04/#05\n这是生成的故事。",
+        )
+        self.assertEqual(plugin.renderer.entries, [1, 2, 3, 4, 5])
+        self.assertEqual(
+            [node.name for node in nodes.nodes[1:]],
+            ["群圣经 #1", "群圣经 #2", "群圣经 #3", "群圣经 #4", "群圣经 #5"],
+        )
+        self.assertEqual(
+            nodes.nodes[1].content[0].text,
+            "群圣经 #1\n群友1：第一条典",
         )
 
     def test_prompt_contains_every_selected_entry_as_quoted_material(self):
